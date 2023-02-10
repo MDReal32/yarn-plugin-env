@@ -1,0 +1,28 @@
+{
+  "name": "@mdreal/yarn-plugin-env",
+  "version": "1.0.0",
+  "main": "./sources/index.ts",
+  "scripts": {
+    "build": "rimraf bundles && builder build plugin && yarn fix-naming",
+    "fix-naming": "yarn node scripts/fix-naming.js",
+    "import-plugin": "yarn plugin import ./bundles/@mderal/plugin-env.js"
+  },
+  "packageManager": "yarn@3.4.1",
+  "dependencies": {
+    "@yarnpkg/builder": "^4.0.0-rc.34",
+    "@yarnpkg/cli": "^4.0.0-rc.34",
+    "@yarnpkg/core": "^4.0.0-rc.34",
+    "clipanion": "^3.2.0-rc.16",
+    "dotenv": "^16.0.3",
+    "rimraf": "^4.1.2",
+    "tslib": "^2.5.0",
+    "typanion": "^3.12.1"
+  },
+  "devDependencies": {
+    "@types/rimraf": "^3",
+    "prettier": "^2.8.4",
+    "prettier-plugin-packagejson": "^2.4.2",
+    "prettier-plugin-tsconfig": "^0.0.1",
+    "typescript": "4.9.4"
+  }
+}
