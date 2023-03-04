@@ -1,0 +1,122 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        id: cache-node
+        with:
+          path: |
+            ~/.yarn/cache
+            **/node_modules
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+
+      - name: Install
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        run: |
+          corepack enable
+          YARN_CACHE_FOLDER=~/.yarn/cache yarn install --immutable
+
+  build:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.yarn/cache
+            **/node_modules
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+
+      - name: Cache Build
+        id: cache-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            bundles
+          key: build-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            build-${{ runner.os }}-
+
+      - name: Build
+        if: ${{ steps.cache-build.outputs.cache-hit != 'true' }}
+        run: |
+          corepack enable
+          yarn
+          yarn build
+
+  upload_artifact:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            bundles
+          key: build-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            build-${{ runner.os }}-
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: yarn-plugin-env
+          path: bundles/@mdreal/plugin-env.js
+
+  prerelease:
+    needs: upload_artifact
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-matrix.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Version
+        id: get-version
+        uses: jaywcjlove/github-action-package@main
+
+      - name: Get Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: yarn-plugin-env
+          path: bundles/@mdreal
+
+      - name: Deploy
+        id: deploy_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ steps.get-version.outputs.version }}
+          name: v${{ steps.get-version.outputs.version }}
+          artifacts: bundles/@mdreal/plugin-env.js
+
+      - name: Deploy tag to latest
+        id: deploy_release_latest
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: latest
+          name: latest
+          artifacts: bundles/@mdreal/plugin-env.js

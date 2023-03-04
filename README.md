@@ -20,7 +20,7 @@ When you run your scripts with `yarn run` command, Yarn doesn't load environment
 ## Installation
 
 ```bash
-yarn plugin import https://github.com/MDReal32/yarn-plugin-env/releases/download/refs/heads/master/plugin-env.js
+yarn plugin import https://github.com/MDReal32/yarn-plugin-env/releases/download/latest/plugin-env.js
 ```
 
 ## Usage
