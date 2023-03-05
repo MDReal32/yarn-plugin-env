@@ -24,6 +24,7 @@ export class Env extends BaseCommand {
   });
 
   async execute() {
+    const NODE_ENV = process.env.NODE_ENV;
     const development = ["development", "dev"];
     const production = ["production", "prod"];
     const testing = ["testing", "test"];
@@ -40,8 +41,8 @@ export class Env extends BaseCommand {
 
     const rootPath = [process.cwd().split(sep)[0], ""].join(sep);
     let path = process.cwd();
-    while (path.split(sep).length > 1 && process.platform === "win32" && path !== rootPath) {
-      const foundEnvObject = await mapEnvFile(path, env);
+    while (path.split(sep).length > 1 && ((process.platform === "win32" && path !== rootPath) || path !== sep)) {
+      const foundEnvObject = await mapEnvFile(path, NODE_ENV || env);
       Object.assign(envObject, foundEnvObject);
       path = dirname(path);
     }
