@@ -5,7 +5,7 @@
   "scripts": {
     "build": "rimraf bundles && builder build plugin && yarn fix-naming",
     "fix-naming": "yarn node scripts/fix-naming.js",
-    "import-plugin": "yarn plugin import ./bundles/@mderal/plugin-env.js"
+    "import-plugin": "yarn plugin import ./bundles/@mdreal/plugin-env.js"
   },
   "packageManager": "yarn@3.4.1",
   "dependencies": {
