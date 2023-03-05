@@ -1,6 +1,6 @@
 {
   "name": "@mdreal/yarn-plugin-env",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "./sources/index.ts",
   "scripts": {
     "build": "rimraf bundles && builder build plugin && yarn fix-naming",

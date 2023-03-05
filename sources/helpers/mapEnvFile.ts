@@ -2,11 +2,7 @@ import { resolve } from "node:path";
 import { existsSync, promises } from "node:fs";
 import { parse } from "dotenv";
 
-export const mapEnvFile = async (projectCwd: string, NODE_ENV = "production") => {
-  const envObject: Record<string, string> = {};
-
-  envObject.NODE_ENV = NODE_ENV || "development";
-
+export const mapEnvFile = async (envObject: Record<string, string>, projectCwd: string, NODE_ENV?: string) => {
   const envFile = resolve(projectCwd, ".env");
   const isEnvFileExists = existsSync(envFile);
 
@@ -28,6 +24,8 @@ export const mapEnvFile = async (projectCwd: string, NODE_ENV = "production") =>
   if (isEnvFileExists) {
     Object.assign(envObject, parse(await promises.readFile(envFile, "utf8")));
   }
+
+  envObject.NODE_ENV = envObject.NODE_ENV || NODE_ENV || "production";
 
   if (envObject.NODE_ENV === "production") {
     if (isProdEnvFileExists) {

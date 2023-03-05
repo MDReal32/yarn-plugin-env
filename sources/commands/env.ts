@@ -18,7 +18,7 @@ export class Env extends BaseCommand {
   object = Option.Boolean("--object,-o", false, {
     description: "Print environment as javascript object. Uses with --json together",
   });
-  envVar = Option.String("--envVar", "production", {
+  envVar = Option.String("--envVar", null, {
     description: "Print and set environment variables for NODE_ENV",
     validator: t.isEnum(["production", "development", "testing", "prod", "dev", "test"]),
   });
@@ -35,15 +35,14 @@ export class Env extends BaseCommand {
       ? "production"
       : testing.includes(this.envVar)
       ? "test"
-      : "production";
+      : null;
 
-    const envObject = {};
+    const envObject: Record<string, string> = {};
 
     const rootPath = [process.cwd().split(sep)[0], ""].join(sep);
     let path = process.cwd();
     while (path.split(sep).length > 1 && ((process.platform === "win32" && path !== rootPath) || path !== sep)) {
-      const foundEnvObject = await mapEnvFile(path, NODE_ENV || env);
-      Object.assign(envObject, foundEnvObject);
+      await mapEnvFile(envObject, path, NODE_ENV || env);
       path = dirname(path);
     }
 
