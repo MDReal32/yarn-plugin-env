@@ -16,11 +16,11 @@ export class Env extends BaseCommand {
   text = Option.Boolean("--text", true, { description: "Print environment as json" });
   json = Option.Boolean("--json", false, { description: "Print environment as json" });
   object = Option.Boolean("--object,-o", false, {
-    description: "Print environment as javascript object. Uses with --json together"
+    description: "Print environment as javascript object. Uses with --json together",
   });
   envVar = Option.String("--envVar", "production", {
     description: "Print and set environment variables for NODE_ENV",
-    validator: t.isEnum(["production", "development", "testing", "prod", "dev", "test"])
+    validator: t.isEnum(["production", "development", "testing", "prod", "dev", "test"]),
   });
 
   async execute() {
