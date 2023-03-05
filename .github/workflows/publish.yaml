@@ -6,31 +6,7 @@ on:
       - master
 
 jobs:
-  install:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        id: cache-node
-        with:
-          path: |
-            ~/.yarn/cache
-            **/node_modules
-          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-${{ runner.os }}-
-
-      - name: Install
-        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
-        run: |
-          corepack enable
-          YARN_CACHE_FOLDER=~/.yarn/cache yarn install --immutable
-
-  build:
-    needs: install
+  build_and_upload_artifact:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,16 +21,6 @@ jobs:
           key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             yarn-${{ runner.os }}-
-
-      - name: Cache Build
-        id: cache-build
-        uses: actions/cache@v3
-        with:
-          path: |
-            bundles
-          key: build-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            build-${{ runner.os }}-
 
       - name: Build
         if: ${{ steps.cache-build.outputs.cache-hit != 'true' }}
@@ -63,19 +29,6 @@ jobs:
           yarn
           yarn build
 
-  upload_artifact:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Build
-        uses: actions/cache@v3
-        with:
-          path: |
-            bundles
-          key: build-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            build-${{ runner.os }}-
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
@@ -83,7 +36,7 @@ jobs:
           path: bundles/@mdreal/plugin-env.js
 
   prerelease:
-    needs: upload_artifact
+    needs: build_and_upload_artifact
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set-matrix.outputs.version }}
