@@ -41,7 +41,7 @@ export class Env extends BaseCommand {
 
     const rootPath = [process.cwd().split(sep)[0], ""].join(sep);
     let path = process.cwd();
-    while (path.split(sep).length > 1 && ((process.platform === "win32" && path !== rootPath) || path !== sep)) {
+    while (path.split(sep).length > 1 && (process.platform === "win32" ? path !== rootPath : path !== sep)) {
       await mapEnvFile(envObject, path, NODE_ENV || env);
       path = dirname(path);
     }
