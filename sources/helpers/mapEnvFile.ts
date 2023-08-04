@@ -2,7 +2,27 @@ import { resolve } from "node:path";
 import { existsSync, promises } from "node:fs";
 import { parse } from "dotenv";
 
-export const mapEnvFile = async (envObject: Record<string, string>, projectCwd: string, NODE_ENV?: string) => {
+import { ENV_VAR_RE } from "../constants/regex";
+
+const parseAndMapEnvFile = (envObject: Record<string, string>, valueEnvVarContainVariables: Set<string>) => {
+  return async (envFile: string) => {
+    const envFileContent = await promises.readFile(envFile, "utf8");
+    const envData = parse(envFileContent);
+    Object.entries(envData).forEach(([key, value]) => {
+      if (value.match(ENV_VAR_RE)) {
+        valueEnvVarContainVariables.add(key);
+      }
+    });
+    Object.assign(envObject, envData);
+  };
+};
+
+export const mapEnvFile = async (
+  envObject: Record<string, string>,
+  projectCwd: string,
+  valueEnvVarContainVariables: Set<string>,
+  NODE_ENV?: string
+) => {
   const envFile = resolve(projectCwd, ".env");
   const isEnvFileExists = existsSync(envFile);
 
@@ -21,37 +41,27 @@ export const mapEnvFile = async (envObject: Record<string, string>, projectCwd: 
   const isTestEnvFileExists = existsSync(testEnvFile);
   const isTestingEnvFileExists = existsSync(testingEnvFile);
 
+  const map = parseAndMapEnvFile(envObject, valueEnvVarContainVariables);
+
   if (isEnvFileExists) {
-    Object.assign(envObject, parse(await promises.readFile(envFile, "utf8")));
+    await map(envFile);
   }
 
   envObject.NODE_ENV = envObject.NODE_ENV || NODE_ENV || "production";
 
   if (envObject.NODE_ENV === "production") {
-    if (isProdEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(prodEnvFile, "utf8")));
-    }
-    if (isProductionEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(productionEnvFile, "utf8")));
-    }
+    isProdEnvFileExists && (await map(prodEnvFile));
+    isProductionEnvFileExists && (await map(productionEnvFile));
   }
 
   if (envObject.NODE_ENV === "development") {
-    if (isDevEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(devEnvFile, "utf8")));
-    }
-    if (isDevelopmentEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(developmentEnvFile, "utf8")));
-    }
+    isDevEnvFileExists && (await map(devEnvFile));
+    isDevelopmentEnvFileExists && (await map(developmentEnvFile));
   }
 
   if (envObject.NODE_ENV === "test") {
-    if (isTestEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(testEnvFile, "utf8")));
-    }
-    if (isTestingEnvFileExists) {
-      Object.assign(envObject, parse(await promises.readFile(testingEnvFile, "utf8")));
-    }
+    isTestEnvFileExists && (await map(testEnvFile));
+    isTestingEnvFileExists && (await map(testingEnvFile));
   }
 
   return envObject;

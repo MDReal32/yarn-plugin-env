@@ -7,6 +7,7 @@ import * as t from "typanion";
 
 import { usage } from "../constants/usage";
 import { mapEnvFile } from "../helpers/mapEnvFile";
+import { replaceEnvVars } from "../helpers/replaceEnvVars";
 
 export class Env extends BaseCommand {
   static paths = [["env"]];
@@ -41,9 +42,14 @@ export class Env extends BaseCommand {
 
     const rootPath = [process.cwd().split(sep)[0], ""].join(sep);
     let path = process.cwd();
+    const valueEnvVarContainVariables = new Set<string>();
     while (path.split(sep).length > 1 && (process.platform === "win32" ? path !== rootPath : path !== sep)) {
-      await mapEnvFile(envObject, path, NODE_ENV || env);
+      await mapEnvFile(envObject, path, valueEnvVarContainVariables, NODE_ENV || env);
       path = dirname(path);
+    }
+
+    if (valueEnvVarContainVariables.size > 0) {
+      replaceEnvVars(envObject, valueEnvVarContainVariables);
     }
 
     const envString = Object.entries(envObject)
